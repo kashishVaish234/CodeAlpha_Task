@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Image Gallery</title>
+  <style>
+    :root {
+      --primary: #4a90e2;
+      --bg: #f8f9fa;
+      --text: #333;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --highlight: #ff4081;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 40px 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      color: var(--primary);
+    }
+
+    .controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .controls button,
+    .controls input[type="text"],
+    .filters button {
+      margin: 5px;
+      padding: 10px 15px;
+      border: 1px solid var(--primary);
+      border-radius: 5px;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    .controls input[type="text"] {
+      width: 300px;
+    }
+
+    .controls button,
+    .filters button {
+      background: none;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    .controls button:hover,
+    .filters button:hover,
+    .filters button.active {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 0 20px;
+    }
+
+    .gallery-item {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px var(--shadow);
+      overflow: hidden;
+      position: relative;
+      transition: transform 0.3s;
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-5px);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      display: block;
+      transition: transform 0.4s ease;
+      cursor: zoom-in;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.05);
+    }
+
+    .download-btn,
+    .fav-btn {
+      position: absolute;
+      bottom: 10px;
+      background-color: var(--primary);
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .download-btn { right: 10px; }
+    .fav-btn { left: 10px; background-color: var(--highlight); }
+
+    .tags {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 3px 7px;
+      border-radius: 3px;
+    }
+
+    .lightbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .lightbox img {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: 10px;
+    }
+
+    .lightbox .close,
+    .lightbox .nav {
+      position: absolute;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    .lightbox .close {
+      top: 20px;
+      right: 30px;
+    }
+
+    .nav.prev {
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .nav.next {
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .dark-mode {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --primary: #00bcd4;
+      --highlight: #ff80ab;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Advanced Image Gallery</h1>
+
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search images...">
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <button onclick="shuffleImages()">Shuffle</button>
+    <button onclick="showFavorites()">Favorites</button>
+  </div>
+
+  <div class="filters">
+    <button class="active" onclick="filterImages('all')">All</button>
+    <button onclick="filterImages('nature')">Nature</button>
+    <button onclick="filterImages('city')">City</button>
+    <button onclick="filterImages('wildlife')">Wildlife</button>
+  </div>
+
+  <div class="gallery" id="gallery">
+    <!-- Sample items -->
+    <div class="gallery-item nature"><div class="tags">Nature</div><img src="https://source.unsplash.com/800x600/?nature,1" alt=""><a class="download-btn" href="https://source.unsplash.com/800x600/?nature,1" download>Download</a><button class="fav-btn" onclick="toggleFavorite(this)">❤</button></div>
+    <div class="gallery-item city"><div class="tags">City</div><img src="https://source.unsplash.com/800x600/?city,1" alt=""><a class="download-btn" href="https://source.unsplash.com/800x600/?city,1" download>Download</a><button class="fav-btn" onclick="toggleFavorite(this)">❤</button></div>
+    <div class="gallery-item wildlife"><div class="tags">Wildlife</div><img src="https://source.unsplash.com/800x600/?wildlife,1" alt=""><a class="download-btn" href="https://source.unsplash.com/800x600/?wildlife,1" download>Download</a><button class="fav-btn" onclick="toggleFavorite(this)">❤</button></div>
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <span class="close" onclick="closeLightbox()">&times;</span>
+    <span class="nav prev" onclick="navigate(-1)">&#10094;</span>
+    <img id="lightbox-img" src="" alt="">
+    <span class="nav next" onclick="navigate(1)">&#10095;</span>
+  </div>
+
+  <script>
+    const gallery = document.getElementById('gallery');
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    let currentIndex = 0;
+    let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+    galleryItems.forEach((item, index) => {
+      item.addEventListener('click', e => {
+        if (!e.target.classList.contains('fav-btn')) {
+          currentIndex = index;
+          lightboxImg.src = item.querySelector('img').src;
+          lightbox.style.display = 'flex';
+        }
+      });
+    });
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+    }
+
+    function navigate(dir) {
+      currentIndex = (currentIndex + dir + galleryItems.length) % galleryItems.length;
+      lightboxImg.src = galleryItems[currentIndex].querySelector('img').src;
+    }
+
+    function filterImages(category) {
+      document.querySelectorAll('.filters button').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      galleryItems.forEach(item => {
+        item.style.display = category === 'all' || item.classList.contains(category) ? 'block' : 'none';
+      });
+    }
+
+    function searchImages() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      galleryItems.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(query) ? 'block' : 'none';
+      });
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    function shuffleImages() {
+      const items = Array.from(gallery.children);
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        gallery.appendChild(items[j]);
+      }
+    }
+
+    function toggleFavorite(btn) {
+      const imgSrc = btn.parentElement.querySelector('img').src;
+      const index = favorites.indexOf(imgSrc);
+      if (index >= 0) {
+        favorites.splice(index, 1);
+        btn.style.backgroundColor = 'var(--highlight)';
+      } else {
+        favorites.push(imgSrc);
+        btn.style.backgroundColor = 'red';
+      }
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+    }
+
+    function showFavorites() {
+      galleryItems.forEach(item => {
+        const imgSrc = item.querySelector('img').src;
+        item.style.display = favorites.includes(imgSrc) ? 'block' : 'none';
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', searchImages);
+  </script>
+
+</body>
+</html>
